@@ -8,8 +8,71 @@
         const res = await fetch('cleaned_yelp_dataset_business.csv'); 
         const csv = await res.text();
         tempData = d3.csvParse(csv, d3.autoType)
-        console.log(tempData);
+        // console.log(tempData);
     });
+
+    let nestedData = {};
+
+    tempData.forEach(d => {
+        if (!nestedData[d.state]) {
+            nestedData[d.state] = {
+                totalBusinesses: 0,
+                categoryCounts: {}
+            };
+        }
+
+        nestedData[d.state].totalBusinesses++;
+
+        if (!nestedData[d.state].categoryCounts[d.categories]) {
+            nestedData[d.state].categoryCounts[d.categories] = {
+                totalBusinesses: 0,
+                starCounts: {}
+            };
+        }
+
+        nestedData[d.state].categoryCounts[d.categories].totalBusinesses++;
+
+        if (!nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars]) {
+            nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars] = 0;
+        }
+
+        nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars]++;
+    });
+
+    console.log(nestedData);
+
+    let width = 500; // CAN CHANGE
+    let barStep = 27;
+    let barPadding = 3 / barStep;
+    let duration = 750;
+    let marginTop = 30;
+    let marginRight = 30;
+    let marginBottom = 0;
+    let marginLeft = 100;
+
+    let x = d3.scaleLinear().range([marginLeft, width - marginRight])
+
+    let xAxis = g => g
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0,${marginTop})`)
+        .call(d3.axisTop(x).ticks(width / 80, "s"))
+        .call(g => (g.selection ? g.selection() : g).select(".domain").remove())
+
+    let yAxis = g => g
+        .attr("class", "y-axis")
+        .attr("transform", `translate(${marginLeft + 0.5},0)`)
+        .call(g => g.append("line")
+            .attr("stroke", "currentColor")
+            .attr("y1", marginTop)
+            .attr("y2", height - marginBottom))
+
+    let color = d3.scaleOrdinal([true, false], ["steelblue", "#aaa"])
+
+    function height() {
+        let max = 1;
+        root.each(d => d.children && (max = Math.max(max, d.children.length)));
+        return max * barStep + marginTop + marginBottom;
+    }
 
     // ALL FUNCTIONS BELOW
     function chart() {
