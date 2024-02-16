@@ -68,7 +68,7 @@
         chart();
     }
 
-    let width = 500; // CAN CHANGE
+    let width = 1000; // CAN CHANGE
     let barStep = 27;
     let barPadding = 3 / barStep;
     let duration = 750;
@@ -130,7 +130,7 @@
         down(svg, root);
 
         //return svg.node();
-        
+
         const container = document.getElementById('chart-container');
         if (container) { // Check if the container exists before appending
             container.innerHTML = ''; // Clear existing content
