@@ -9,37 +9,40 @@
         const csv = await res.text();
         tempData = d3.csvParse(csv, d3.autoType)
         // console.log(tempData);
+    
+
+        let nestedData = {};
+
+        tempData.forEach(d => {
+            if (!nestedData[d.state]) {
+                nestedData[d.state] = {
+                    totalBusinesses: 0,
+                    categoryCounts: {}
+                };
+            }
+
+            nestedData[d.state].totalBusinesses++;
+
+            if (!nestedData[d.state].categoryCounts[d.category]) {
+                nestedData[d.state].categoryCounts[d.category] = {
+                    totalBusinesses: 0,
+                    starCounts: {}
+                };
+            }
+
+            nestedData[d.state].categoryCounts[d.category].totalBusinesses++;
+
+            if (!nestedData[d.state].categoryCounts[d.category].starCounts[d.stars]) {
+                nestedData[d.state].categoryCounts[d.category].starCounts[d.stars] = 0;
+            }
+
+            nestedData[d.state].categoryCounts[d.category].starCounts[d.stars]++;
+        });
+
+        console.log(nestedData);
     });
 
-    let nestedData = {};
-
-    tempData.forEach(d => {
-        if (!nestedData[d.state]) {
-            nestedData[d.state] = {
-                totalBusinesses: 0,
-                categoryCounts: {}
-            };
-        }
-
-        nestedData[d.state].totalBusinesses++;
-
-        if (!nestedData[d.state].categoryCounts[d.categories]) {
-            nestedData[d.state].categoryCounts[d.categories] = {
-                totalBusinesses: 0,
-                starCounts: {}
-            };
-        }
-
-        nestedData[d.state].categoryCounts[d.categories].totalBusinesses++;
-
-        if (!nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars]) {
-            nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars] = 0;
-        }
-
-        nestedData[d.state].categoryCounts[d.categories].starCounts[d.stars]++;
-    });
-
-    console.log(nestedData);
+    //let root = nestedData;
 
     let width = 500; // CAN CHANGE
     let barStep = 27;
@@ -49,6 +52,8 @@
     let marginRight = 30;
     let marginBottom = 0;
     let marginLeft = 100;
+    //let height = calc_height();
+    
 
     let x = d3.scaleLinear().range([marginLeft, width - marginRight])
 
@@ -68,7 +73,7 @@
 
     let color = d3.scaleOrdinal([true, false], ["steelblue", "#aaa"])
 
-    function height() {
+    function calc_height() {
         let max = 1;
         root.each(d => d.children && (max = Math.max(max, d.children.length)));
         return max * barStep + marginTop + marginBottom;
@@ -114,7 +119,7 @@
             .style("font", "10px sans-serif");
 
         const bar = g.selectAll("g")
-            .data(d.children)
+            .nestedData(d.children)
             .join("g")
             .attr("cursor", d => !d.children ? null : "pointer")
             .on("click", (event, d) => down(svg, d));
@@ -123,7 +128,7 @@
             .attr("x", marginLeft - 6)
             .attr("y", barStep * (1 - barPadding) / 2)
             .attr("dy", ".35em")
-            .text(d => d.data.name);
+            .text(d => d.nestedData.name);
 
         bar.append("rect")
             .attr("x", x(0))
