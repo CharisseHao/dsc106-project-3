@@ -5,6 +5,7 @@
     let tempData = [];
     let root = null;
     let height = 0;
+    let isChartRendered = false;
 
     onMount(async () => {
         const res = await fetch('cleaned_yelp_dataset_business.csv'); 
@@ -58,6 +59,8 @@
             .eachAfter(d => d.index = d.parent ? d.parent.index = d.parent.index + 1 || 0 : 0);
         
         console.log(root);
+
+        isChartRendered = true; 
     });
 
     $: if (root !== null) {
@@ -126,7 +129,13 @@
 
         down(svg, root);
 
-        return svg.node();
+        //return svg.node();
+        
+        const container = document.getElementById('chart-container');
+        if (container) { // Check if the container exists before appending
+            container.innerHTML = ''; // Clear existing content
+            container.appendChild(svg.node());
+        }
     }
 
 
