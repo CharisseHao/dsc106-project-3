@@ -3,6 +3,8 @@
     import * as d3 from 'd3';
 
     let tempData = [];
+    let root = null;
+    let height = 0;
 
     onMount(async () => {
         const res = await fetch('cleaned_yelp_dataset_business.csv'); 
@@ -39,10 +41,29 @@
             nestedData[d.state].categoryCounts[d.category].starCounts[d.stars]++;
         });
 
-        console.log(nestedData);
+        const dataAsArray = Object.entries(nestedData).map(([name, children]) => ({
+            name,
+            children: Object.entries(children.categoryCounts).map(([category, { totalBusinesses, starCounts }]) => ({
+                name: category,
+                children: Object.entries(starCounts).map(([star, count]) => ({ name: star.toString(), value: count })),
+                value: totalBusinesses
+            }))
+        }));
+
+        const rootData = { name: "data", children: dataAsArray };
+
+        root = d3.hierarchy(rootData)
+            .sum(d => d.value)
+            .sort((a, b) => b.value - a.value)
+            .eachAfter(d => d.index = d.parent ? d.parent.index = d.parent.index + 1 || 0 : 0);
+        
+        console.log(root);
     });
 
-    //let root = nestedData;
+    $: if (root !== null) {
+        height = calc_height();
+        chart();
+    }
 
     let width = 500; // CAN CHANGE
     let barStep = 27;
@@ -52,7 +73,6 @@
     let marginRight = 30;
     let marginBottom = 0;
     let marginLeft = 100;
-    //let height = calc_height();
     
 
     let x = d3.scaleLinear().range([marginLeft, width - marginRight])
@@ -119,7 +139,7 @@
             .style("font", "10px sans-serif");
 
         const bar = g.selectAll("g")
-            .nestedData(d.children)
+            .data(d.children)
             .join("g")
             .attr("cursor", d => !d.children ? null : "pointer")
             .on("click", (event, d) => down(svg, d));
@@ -128,7 +148,7 @@
             .attr("x", marginLeft - 6)
             .attr("y", barStep * (1 - barPadding) / 2)
             .attr("dy", ".35em")
-            .text(d => d.nestedData.name);
+            .text(d => d.data.name);
 
         bar.append("rect")
             .attr("x", x(0))
@@ -280,8 +300,10 @@
     }
 </script>
 
-<main>
-
+<main id="chart-container">
+    {#if height > 0}
+        <svg id="chart-svg" viewBox="0 0 {width} {height}"></svg>
+    {/if}
 </main>
 
 <style>
