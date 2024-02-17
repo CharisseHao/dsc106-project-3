@@ -68,7 +68,7 @@
         chart();
     }
 
-    let width = 1000; // CAN CHANGE
+    let width = 1250; // CHANGE WIDTH HERE
     let barStep = 27;
     let barPadding = 3 / barStep;
     let duration = 750;
