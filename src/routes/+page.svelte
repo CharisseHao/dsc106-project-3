@@ -3,3 +3,24 @@
 </script>
 
 <App />
+
+<style>
+    h1 {
+        font-family: "Times New Roman"; 
+        font-size: 24px;
+        color: #000;
+    }
+
+    section {
+        font-family: "Times New Roman"; 
+        font-size: 16px; 
+        color: #333;
+        text-align: center;
+    }
+
+    .chart-container {
+        display: inline-block;
+        border: 2px solid #333; /* Add border around the chart */
+        padding: 10px; /* Add padding around the chart */
+    }
+</style>
