@@ -5,7 +5,6 @@
     let tempData = [];
     let root = null;
     let height = 0;
-    let isChartRendered = false;
 
     onMount(async () => {
         const res = await fetch('cleaned_yelp_dataset_business.csv'); 
@@ -13,7 +12,7 @@
         tempData = d3.csvParse(csv, d3.autoType)
         // console.log(tempData);
     
-
+        // CODE TO FORMAT DATA BELOW
         let nestedData = {};
 
         tempData.forEach(d => {
@@ -58,11 +57,10 @@
             .sort((a, b) => b.value - a.value)
             .eachAfter(d => d.index = d.parent ? d.parent.index = d.parent.index + 1 || 0 : 0);
         
-        console.log(root);
-
-        isChartRendered = true; 
+        // console.log(root);
     });
 
+    // DECLARE VARIABLES BELOW
     $: if (root !== null) {
         height = calc_height();
         chart();
@@ -96,19 +94,20 @@
 
     let color = d3.scaleOrdinal([true, false], ["steelblue", "#aaa"])
 
+    // ALL FUNCTIONS BELOW
     function calc_height() {
         let max = 1;
         root.each(d => d.children && (max = Math.max(max, d.children.length)));
         return max * barStep + marginTop + marginBottom;
     }
 
-    // ALL FUNCTIONS BELOW
     function chart() {
         let svg = d3.create("svg")
             .attr("viewBox", [0, 0, width, height])
             .attr("width", width)
-            .attr("height", height)
-            .attr("style", "max-width: 100%; height: auto;");
+            .attr("height", height + 25)
+            .attr("style", "max-width: 100%; height: auto;")
+            .attr("transform", "translate(" + 35 + ", 0)");
 
         x.domain([0, root.value]);
 
@@ -126,10 +125,25 @@
 
         svg.append("g")
             .call(yAxis);
+        
+        // For x-axis label
+        svg.append("text")
+            .attr("class", "x-axis-label")
+            .attr("text-anchor", "middle")
+            .attr("x", width / 2)
+            .attr("y", 5)
+            .text("Count");
+
+        // Add y-axis label
+        svg.append("text")
+            .attr("class", "y-axis-label")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", 12)
+            .text("Businesses Across US States");
 
         down(svg, root);
-
-        //return svg.node();
 
         const container = document.getElementById('chart-container');
         if (container) { // Check if the container exists before appending
@@ -167,8 +181,6 @@
         return g;
     }
 
-
-    
     function down(svg, d) {
         if (!d.children || d3.active(svg.node())) return;
 
@@ -225,6 +237,19 @@
             .transition(transition2)
             .attr("fill", d => color(!!d.children))
             .attr("width", d => x(d.value) - x(0));
+
+
+        // Update the y-axis label text
+        let yAxisLabel = '';
+        if (d.depth === 0) {
+            yAxisLabel = 'Businesses Across US States';
+        } else if (d.depth == 1){
+            yAxisLabel = 'Distribution of Businesses in ' + d.data.name;
+        } else {
+            yAxisLabel = 'Star Distribution of ' + d.data.name + ' in ' + d.parent.data.name;
+        }
+        svg.selectAll(".y-axis-label")
+            .text(yAxisLabel); // Set label text to the current category
     }
 
     function up(svg, d) {
@@ -288,6 +313,19 @@
             .transition(transition2)
             .attr("width", d => x(d.value) - x(0))
             .on("end", function(p) { d3.select(this).attr("fill-opacity", 1); });
+
+
+        // Update the y-axis label text
+        let yAxisLabel = '';
+        if (d.parent.depth === 0) {
+            yAxisLabel = 'Businesses Across US States';
+        } else if (d.parent.depth == 1){
+            yAxisLabel =  'Distribution of Businesses in ' + d.parent.data.name;
+        } else {
+            yAxisLabel = 'Star Distribution of ' + d.parent.data.name + ' in ' + d.parent.parent.data.name;
+        }
+        svg.selectAll(".y-axis-label")
+            .text(yAxisLabel); // Set label text to the current category
     }
 
     function stack(i) {
