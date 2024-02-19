@@ -401,8 +401,8 @@
     h1 {
         font-size: 2.5rem;
         margin-top: 50px;
-        color: #007bff; /* Blue color */
-        font-family: Arial, sans-serif; /* Specify a fallback font family */
+        color: #000; 
+        font-family: "Times New Roman"; 
         text-align: center; /* Center align the title */
     }
 
@@ -411,11 +411,14 @@
         font-size: 1.2rem;
         margin-bottom: 50px;
         color: #333; /* Darker gray color for better readability */
-        font-family: Arial, sans-serif; /* Specify a fallback font family */
+        font-family: "Times New Roman";
         text-align: center; /* Center align the description */
     }
 
-    
+    #chart-container {
+        display: inline-block;
+        padding: 50px; /* Add padding around the chart */
+    }
 
 </style>
 
