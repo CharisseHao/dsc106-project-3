@@ -178,6 +178,19 @@
             .attr("width", d => x(d.value) - x(0))
             .attr("height", barStep * (1 - barPadding));
 
+
+        // Append text for counts
+        bar.append("text")
+            .attr("class", "bar-count")
+            .attr("x", d => x(d.value)) // Adjust position for better alignment
+            .attr("y", barStep * (1 - barPadding) / 2)
+            .attr("dx", 3)
+            .attr("dy", ".35em")
+            .attr("fill", "white")
+            .attr("text-anchor", "start")
+            .text(d => d.value); // Display count value
+
+
         return g;
     }
 
