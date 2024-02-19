@@ -92,7 +92,8 @@
             .attr("y1", marginTop)
             .attr("y2", height - marginBottom))
 
-    let color = d3.scaleOrdinal([true, false], ["steelblue", "#aaa"])
+    let color = d3.scaleOrdinal().range(["steelblue"]);
+
 
     // ALL FUNCTIONS BELOW
     function calc_height() {
@@ -131,7 +132,8 @@
             .attr("class", "x-axis-label")
             .attr("text-anchor", "middle")
             .attr("x", width / 2)
-            .attr("y", 5)
+            .attr("y", 0)
+            .attr("font-weight", "bold")
             .text("Count");
 
         // Add y-axis label
@@ -141,7 +143,8 @@
             .attr("transform", "rotate(-90)")
             .attr("x", -height / 2)
             .attr("y", 12)
-            .text("Businesses Across US States");
+            .attr("font-weight", "bold")
+            .text("Businesses Across U.S. States");
 
         down(svg, root);
 
@@ -152,8 +155,8 @@
         }
     }
 
-
     // Creates a set of bars for the given data node, at the specified index.
+    // Inside the `bar` function
     function bar(svg, down, d, selector) {
         const g = svg.insert("g", selector)
             .attr("class", "enter")
@@ -176,8 +179,30 @@
         bar.append("rect")
             .attr("x", x(0))
             .attr("width", d => x(d.value) - x(0))
-            .attr("height", barStep * (1 - barPadding));
+            .attr("height", barStep * (1 - barPadding))
+            .attr("fill", d => color(!!d.children)) // Set initial bar color
+            .on("mouseover", function () {
+                d3.select(this)
+                    .transition()
+                    .duration(500) // Smooth transition duration
+                    .attr("fill", "#af69ee"); // purple when hover
 
+                d3.select(this.parentNode).select("text")
+                    .transition()
+                    .duration(500) // Smooth transition duration
+                    .attr("fill", "#af69ee"); // purple when hover
+            })
+            .on("mouseout", function (event, d) {
+                d3.select(this)
+                    .transition()
+                    .duration(500) // Smooth transition duration
+                    .attr("fill", color(!!d.children)); // Restore the original bar color on mouseout
+
+                d3.select(this.parentNode).select("text")
+                    .transition()
+                    .duration(500) // Smooth transition duration
+                    .attr("fill", "black"); // Restore the original text color on mouseout
+            });
 
         // Append text for counts
         bar.append("text")
@@ -190,9 +215,11 @@
             .attr("text-anchor", "start")
             .text(d => d.value); // Display count value
 
-
         return g;
     }
+
+
+
 
     function down(svg, d) {
         if (!d.children || d3.active(svg.node())) return;
@@ -360,6 +387,9 @@
     }
 </script>
 
+<h1>What Lies Behind Yelp Across America? Exploring Business Distribution, Types, and Ratings Across States</h1>
+<p>Click a blue bar to drill down, or click the background to go back up.</p>
+
 <main id="chart-container">
     {#if height > 0}
         <svg id="chart-svg" viewBox="0 0 {width} {height}"></svg>
@@ -367,5 +397,25 @@
 </main>
 
 <style>
+    /* Title style */
+    h1 {
+        font-size: 2.5rem;
+        margin-top: 50px;
+        color: #007bff; /* Blue color */
+        font-family: Arial, sans-serif; /* Specify a fallback font family */
+        text-align: center; /* Center align the title */
+    }
+
+    /* Description style */
+    p {
+        font-size: 1.2rem;
+        margin-bottom: 50px;
+        color: #333; /* Darker gray color for better readability */
+        font-family: Arial, sans-serif; /* Specify a fallback font family */
+        text-align: center; /* Center align the description */
+    }
+
+    
 
 </style>
+
