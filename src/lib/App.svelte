@@ -185,7 +185,8 @@
                 d3.select(this)
                     .transition()
                     .duration(500) // Smooth transition duration
-                    .attr("fill", "#af69ee"); // purple when hover
+                    .attr("fill", "#af69ee") // purple when hover
+                    .attr("width", d => x(d.value) - x(0)); // Change width when hovering
 
                 d3.select(this.parentNode).select("text")
                     .transition()
@@ -196,13 +197,15 @@
                 d3.select(this)
                     .transition()
                     .duration(500) // Smooth transition duration
-                    .attr("fill", color(!!d.children)); // Restore the original bar color on mouseout
+                    .attr("fill", color(!!d.children)) // Restore the original bar color on mouseout
+                    .attr("width", d => x(d.value) - x(0)); // Restore the original width
 
                 d3.select(this.parentNode).select("text")
                     .transition()
                     .duration(500) // Smooth transition duration
                     .attr("fill", "black"); // Restore the original text color on mouseout
             });
+
 
         // Append text for counts
         bar.append("text")
