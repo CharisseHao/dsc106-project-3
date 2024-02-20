@@ -102,6 +102,7 @@
         return max * barStep + marginTop + marginBottom;
     }
 
+    // Function to create chart
     function chart() {
         let svg = d3.create("svg")
             .attr("viewBox", [0, 0, width, height])
@@ -148,15 +149,15 @@
 
         down(svg, root);
 
+        // Chart to website
         const container = document.getElementById('chart-container');
-        if (container) { // Check if the container exists before appending
+        if (container) {
             container.innerHTML = ''; // Clear existing content
             container.appendChild(svg.node());
         }
     }
 
-    // Creates a set of bars for the given data node, at the specified index.
-    // Inside the `bar` function
+    // Creates bars for the given data node
     function bar(svg, down, d, selector) {
         const g = svg.insert("g", selector)
             .attr("class", "enter")
@@ -286,66 +287,62 @@
         return g;
     }
 
-
-
-
+    // Function when bar is clicked - expands selected bar
     function down(svg, d) {
         if (!d.children || d3.active(svg.node())) return;
 
-        // Rebind the current node to the background.
+        // Rebind current node to the background
         svg.select(".background").datum(d);
 
-        // Define two sequenced transitions.
+        // Define transitions
         const transition1 = svg.transition().duration(duration);
         const transition2 = transition1.transition();
 
-        // Mark any currently-displayed bars as exiting.
+        // Currently displayed bars are exiting
         const exit = svg.selectAll(".enter")
             .attr("class", "exit");
 
-        // Entering nodes immediately obscure the clicked-on bar, so hide it.
+        // Hide entering node to not obscure the selected bar
         exit.selectAll("rect")
             .attr("fill-opacity", p => p === d ? 0 : null);
 
-        // Transition exiting bars to fade out.
+        // Exiting bars transition
         exit.transition(transition1)
             .attr("fill-opacity", 0)
             .remove();
 
-        // Enter the new bars for the clicked-on data.
-        // Per above, entering bars are immediately visible.
+        // New bars for the selected data
         const enter = bar(svg, down, d, ".y-axis")
             .attr("fill-opacity", 0);
 
-        // Have the text fade-in, even though the bars are visible.
+        // Text fade-in
         enter.transition(transition1)
             .attr("fill-opacity", 1);
 
-        // Transition entering bars to their new y-position.
+        // Transition entering bars to their y-position
         enter.selectAll("g")
             .attr("transform", stack(d.index))
             .transition(transition1)
             .attr("transform", stagger());
 
-        // Update the x-scale domain.
+        // Update the x-scale domain
         x.domain([0, d3.max(d.children, d => d.value)]);
 
-        // Update the x-axis.
+        // Update the x-axis
         svg.selectAll(".x-axis").transition(transition2)
             .call(xAxis);
 
-        // Transition entering bars to the new x-scale.
+        // Transition entering bars to the new x-scale
         enter.selectAll("g").transition(transition2)
             .attr("transform", (d, i) => `translate(0,${barStep * i})`);
 
-        // Color the bars as parents; they will fade to children if appropriate.
+        // Color the bars as blue; grey if they can't drill down more
         enter.selectAll("rect")
             .attr("fill", color(true))
             .attr("fill-opacity", 1)
             .transition(transition2)
             .attr("fill", d => color(!!d.children))
             .attr("width", d => x(d.value) - x(0));
-
 
         // Update the y-axis label text
         let yAxisLabel = '';
@@ -360,61 +357,58 @@
             .text(yAxisLabel); // Set label text to the current category
     }
 
+    // Function when background is clicked - returns to previous bars
     function up(svg, d) {
         if (!d.parent || !svg.selectAll(".exit").empty()) return;
 
-        // Rebind the current node to the background.
+        // Rebind current node to background
         svg.select(".background").datum(d.parent);
 
-        // Define two sequenced transitions.
+        // Define transitions
         const transition1 = svg.transition().duration(duration);
         const transition2 = transition1.transition();
 
-        // Mark any currently-displayed bars as exiting.
+        // Currently displayed bars are exiting
         const exit = svg.selectAll(".enter")
             .attr("class", "exit");
 
-        // Update the x-scale domain.
+        // Update the x-scale domain
         x.domain([0, d3.max(d.parent.children, d => d.value)]);
 
-        // Update the x-axis.
+        // Update the x-axis
         svg.selectAll(".x-axis").transition(transition1)
             .call(xAxis);
 
-        // Transition exiting bars to the new x-scale.
+        // Transition exiting bars to the new x-scale
         exit.selectAll("g").transition(transition1)
             .attr("transform", stagger());
 
-        // Transition exiting bars to the parent’s position.
+        // Transition exiting bars to the parent’s position
         exit.selectAll("g").transition(transition2)
             .attr("transform", stack(d.index));
 
-        // Transition exiting rects to the new scale and fade to parent color.
+        // Transition exiting rects to new scale and to parent color
         exit.selectAll("rect").transition(transition1)
             .attr("width", d => x(d.value) - x(0))
             .attr("fill", color(true));
 
-        // Transition exiting text to fade out.
-        // Remove exiting nodes.
+        // Remove exiting nodes and text fade out
         exit.transition(transition2)
             .attr("fill-opacity", 0)
             .remove();
 
-        // Enter the new bars for the clicked-on data's parent.
+        // Enter the new bars for the selected data's parent
         const enter = bar(svg, down, d.parent, ".exit")
             .attr("fill-opacity", 0);
 
         enter.selectAll("g")
             .attr("transform", (d, i) => `translate(0,${barStep * i})`);
 
-        // Transition entering bars to fade in over the full duration.
+        // Transition entering bars to fade in 
         enter.transition(transition2)
             .attr("fill-opacity", 1);
 
-        // Color the bars as appropriate.
-        // Exiting nodes will obscure the parent bar, so hide it.
-        // Transition entering rects to the new x-scale.
-        // When the entering parent rect is done, make it visible!
+        // Color bars and transition in parent rects
         enter.selectAll("rect")
             .attr("fill", d => color(!!d.children))
             .attr("fill-opacity", p => p === d ? 0 : null)
@@ -455,8 +449,10 @@
     }
 </script>
 
+
+
 <h1>What Lies Behind Yelp Across America? Exploring Business Distribution, Types, and Ratings Across States</h1>
-<p>Click a blue bar to drill down, or click the background to go back up.</p>
+<p class="centered-text">Click a blue bar to drill down, or click the background to go back up.</p>
 
 <main id="chart-container">
     {#if height > 0}
@@ -464,28 +460,64 @@
     {/if}
 </main>
 
+<p>
+Yelp is one of the most popular apps used to explore businesses in one’s surrounding area. As Yelp users ourselves, we wanted to dig into this dataset and explore Yelp data through its different business types and ratings across America.
+</p>
+<p>
+The interactive hierarchical structure of the bar chart above adds a unique touch to the basic bar chart, and each level is represented by a set of bars displaying the count in each category. The first layer portrays the distribution of businesses across different US states, the second portrays the distribution of business types for the selected state, and the third portrays the distribution of stars for the business type in the state. As the data naturally lends itself to a nested structure of state, business, and ratings, we determined this hierarchical bar chart visualization is appropriate to convey the information needed to answer our question.
+</p>
+<p>
+To enable interactivity within the visualization, we implemented a feature where clicking on a bar expands it to reveal more detailed data, providing users with a view into a subcategory. As stated earlier, the first category is states, the next is the distribution of different business types across the specific state, and finally, the last is the counts of ratings for the selected state’s business type. We also added a feature so viewers could hover over a bar to highlight it, as well as display the category and its count. At first, we debated adding values to each bar in the visualization, however, it looked too cluttered. With this in mind, we opted to use a tooltip to convey a summarization of the current highlighted bar along with its corresponding count instead. This feature allows for easier comprehension while ensuring the visualization stays uncluttered and elegant. The bars are colored blue because it is perceived as calm and trustworthy, and when hovering over a bar, it transitions to purple which is a smooth contrast and indicates interaction. Additionally, when the viewer reaches the last category (ratings) in the graph, the bars’ color becomes gray, indicating it is the last layer of the hierarchical chart and viewers can no longer click on bars to expand them.
+</p>
+<p>
+We started our development process with Exploratory Data Analysis (EDA) to gain a deeper understanding of the Yelp dataset. This dataset included the following columns: business_id, name, address, city, state, postal_code, latitude, longitude, stars, review_count, is_open, attributes, categories, and hours. Initially, we considered a time series line graph, however since there was no time data associated with each data point, we ultimately decided against this option. Further EDA involved dropping unnecessary columns and cleaning and categorizing businesses for future aggregation within the bar chart. We removed businesses that are permanently closed and states that are invalid or had very few reported businesses. For example, “AB” in the state category refers to Alberta, Canada, and is invalid for our question, which aimed to analyze the distribution of selected variables in the U.S. States. After EDA, we worked on building our visualization and implementing hover annotations and tooltips that required additional attention, including refining transition times for smoother visual effects.
+</p>
+<p>
+During the initial team meeting, we decided on the Yelp dataset before brainstorming potential questions. Our team then split the tasks by working on what was necessary when each group member had time. Charisse dedicated approximately 10 hours, Nicole contributed about 7 hours, and Jenna devoted around 4 hours. The process of creating the visualization and figuring out the data formatting took the most time. Charisse took charge of EDA by categorizing the businesses, as well as dropping states with too few businesses and states, not from the U.S.. She added axis labels and values to each bar, which eventually changed to a tooltip, and she added the writeup to the final website. Nicole assisted with loading the data, added hover animations, helped debug errors on the graph, and added CSS styles to the website. Jenna helped with general debugging, researching other examples of how our particular visualization was implemented, and writing the write-up. Overall, the development process involved collaboration through creativity in finding ways to implement our visualization by overcoming challenges in data formatting issues and optimizing the interface for better readability and interactivity. 
+</p>
+
+
+<div></div>
+
+
+
 <style>
     /* Title style */
     h1 {
         font-size: 2.5rem;
         margin-top: 50px;
+        margin-left: 250px;
+        margin-right: 250px;
         color: #000; 
         font-family: "Times New Roman"; 
-        text-align: center; /* Center align the title */
+        text-align: left; /* Left align the title */
     }
 
     /* Description style */
     p {
         font-size: 1.2rem;
-        margin-bottom: 50px;
+        margin-left: 250px;
+        margin-right: 250px;
         color: #333; /* Darker gray color for better readability */
         font-family: "Times New Roman";
-        text-align: center; /* Center align the description */
+        line-height: 1.25;
+        text-indent: 20px;
+        text-align: justify; /* like newspaper format */
+
+    }
+
+    .centered-text {
+       text-align: center; /* Horizontally center the text */
     }
 
     #chart-container {
-        display: inline-block;
-        padding: 50px; /* Add padding around the chart */
+        display: block;
+        margin: 50px auto 0; /* center it */
+    }
+
+    #chart-container + p {
+        margin-top: 0px; /* Adjust the margin-top value */
+        margin-bottom: 50px; /* Add margin-bottom to reduce the gap */
     }
 
 </style>
