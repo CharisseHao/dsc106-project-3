@@ -92,7 +92,7 @@
             .attr("y1", marginTop)
             .attr("y2", height - marginBottom))
 
-    let color = d3.scaleOrdinal().range(["steelblue"]);
+    let color = d3.scaleOrdinal([true, false], ["steelblue", "#aaa"])
 
 
     // ALL FUNCTIONS BELOW
@@ -181,42 +181,107 @@
             .attr("width", d => x(d.value) - x(0))
             .attr("height", barStep * (1 - barPadding))
             .attr("fill", d => color(!!d.children)) // Set initial bar color
-            .on("mouseover", function () {
+            .on("mouseover", function(event, d) {
+                // Change color of the bar on hover
                 d3.select(this)
                     .transition()
-                    .duration(500) // Smooth transition duration
-                    .attr("fill", "#af69ee") // purple when hover
-                    .attr("width", d => x(d.value) - x(0)); // Change width when hovering
+                    .duration(500)
+                    .attr("fill", "#af69ee")
+                    .attr("width", d => x(d.value) - x(0));
 
+                // Change color of the text on hover
                 d3.select(this.parentNode).select("text")
                     .transition()
-                    .duration(500) // Smooth transition duration
-                    .attr("fill", "#af69ee"); // purple when hover
+                    .duration(500)
+                    .attr("fill", "#af69ee");
+
+                // Delete old tooltip
+                svg.selectAll(".tooltip").remove();
+
+                // Create tooltip
+                const tooltip = svg.append("g")
+                    .attr("class", "tooltip")
+                    .style("pointer-events", "none");
+
+                let rect_width;
+                let rect_text;
+
+                if (d.depth === 1) {
+                    const toName = {
+                        "PA": "Pennsylvania",
+                        "FL": "Florida",
+                        "TN": "Tennessee",
+                        "IN": "Indiana",
+                        "MO": "Missouri",
+                        "AZ": "Arizona",
+                        "LA": "Louisiana",
+                        "NJ": "New Jersey",
+                        "NV": "Nevada",
+                        "CA": "California",
+                        "ID": "Idaho",
+                        "DE": "Delaware",
+                        "IL": "Illinois"
+                    };
+                    rect_width = 140;
+                    rect_text = `State: ${toName[d.data.name]}`
+                } else if (d.depth === 2) {
+                    rect_width = 195;
+                    rect_text = `Business: ${d.data.name}`
+                } else if (d.depth === 3) {
+                    rect_width = 75;
+                    rect_text = `Stars: ${d.data.name}`    
+                }
+
+                // Add rectangle to tooltip
+                tooltip.append("rect")
+                    .attr("fill", "white")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 0.5)
+                    .attr("rx", 2)
+                    .attr("ry", 2)
+                    .attr("width", rect_width) 
+                    .attr("height", 47); 
+
+                // Add text to tooltip
+                    tooltip.append("text")
+                        .attr("x", 7) // Adjust the padding of text inside the tooltip box
+                        .attr("y", 17) // Adjust the vertical position of text inside the tooltip box
+                        .attr("fill", "black")
+                        .text(rect_text); // Show the category name
+
+                // Add text to tooltip
+                tooltip.append("text")
+                    .attr("x", 7) // Adjust the padding of text inside the tooltip box
+                    .attr("y", 37) // Adjust the vertical position of text inside the tooltip box
+                    .attr("fill", "black")
+                    .text(d.value); // Show the value count for the category
+
+                // Update tooltip position based on mouse pointer
+                svg.on("mousemove", function(event) {
+                    const [mouseX, mouseY] = d3.pointer(event);
+                    tooltip.attr("transform", `translate(${mouseX + 20},${mouseY - 10})`); // Adjust the offset of the tooltip from the mouse pointer
+                });
             })
-            .on("mouseout", function (event, d) {
+
+            .on("mouseout", function() {
+                // Restore original color of the bar and text on mouseout
                 d3.select(this)
                     .transition()
-                    .duration(500) // Smooth transition duration
-                    .attr("fill", color(!!d.children)) // Restore the original bar color on mouseout
-                    .attr("width", d => x(d.value) - x(0)); // Restore the original width
+                    .duration(500)
+                    .attr("fill", d => color(!!d.children))
+                    .attr("width", d => x(d.value) - x(0));
 
                 d3.select(this.parentNode).select("text")
                     .transition()
-                    .duration(500) // Smooth transition duration
-                    .attr("fill", "black"); // Restore the original text color on mouseout
+                    .duration(500)
+                    .attr("fill", "black");
+
+                // Remove the tooltip
+                svg.select(".tooltip").remove();
+
+                // Remove mousemove event listener
+                svg.on("mousemove", null);
             });
-
-
-        // Append text for counts
-        bar.append("text")
-            .attr("class", "bar-count")
-            .attr("x", d => x(d.value)) // Adjust position for better alignment
-            .attr("y", barStep * (1 - barPadding) / 2)
-            .attr("dx", 3)
-            .attr("dy", ".35em")
-            .attr("fill", "white")
-            .attr("text-anchor", "start")
-            .text(d => d.value); // Display count value
 
         return g;
     }
