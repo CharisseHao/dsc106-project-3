@@ -454,11 +454,11 @@
 <h1>What Lies Behind Yelp Across America? Exploring Business Distribution, Types, and Ratings Across States</h1>
 <p class="centered-text">Click a blue bar to drill down, or click the background to go back up.</p>
 
-<main id="chart-container">
-    {#if height > 0}
-        <svg id="chart-svg" viewBox="0 0 {width} {height}"></svg>
-    {/if}
-</main>
+// <main id="chart-container">
+    // {#if height > 0}
+        // <svg id="chart-svg" viewBox="0 0 {width} {height}"></svg>
+    // {/if}
+// </main>
 
 <p>
 Yelp is one of the most popular apps used to explore businesses in one’s surrounding area. As Yelp users ourselves, we wanted to dig into this dataset and explore Yelp data through its different business types and ratings across America.
