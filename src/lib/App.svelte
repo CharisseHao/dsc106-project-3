@@ -454,7 +454,7 @@
 <h1>What Lies Behind Yelp Across America? Exploring Business Distribution, Types, and Ratings Across States</h1>
 <p class="centered-text">Click a blue bar to drill down, or click the background to go back up.</p>
 
-// <main id="chart-container">
+<main id="chart-container">
     // {#if height > 0}
         // <svg id="chart-svg" viewBox="0 0 {width} {height}"></svg>
     // {/if}
